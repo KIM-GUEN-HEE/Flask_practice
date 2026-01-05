@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-success text-white">이메일 인증</div>
+        <div class="card-body">
+          {% if success %}
+            <p>이메일 인증이 완료되었습니다. 이제 로그인하실 수 있습니다.</p>
+          {% else %}
+            <p>인증에 실패했습니다. 인증 링크가 만료되었거나 잘못된 링크입니다.</p>
+          {% endif %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary">로그인</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

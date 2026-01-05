@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-4">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header bg-info text-white">이메일 인증 발송</div>
+        <div class="card-body">
+          <p>등록하신 이메일 <strong>{{ email }}</strong>로 인증 링크를 발송했습니다.</p>
+          {% if sent %}
+          <p>이메일을 확인하시어 링크를 클릭하면 인증이 완료됩니다.</p>
+          {% else %}
+          <p>메일 서버가 구성되어 있지 않아 개발용 링크를 출력했습니다. 아래 링크를 사용해 인증하세요.</p>
+          <pre>{{ verify_link }}</pre>
+          {% endif %}
+          <a href="{{ url_for('auth.login') }}" class="btn btn-primary">로그인으로 이동</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

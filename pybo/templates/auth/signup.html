@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container my-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0">계정생성</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('auth.signup') }}" id="signupForm" onsubmit="return validateBeforeSubmit(event)">
+                        <div class="mb-3">
+                            <label for="username" class="form-label">사용자ID</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="username" name="username" 
+                                       pattern="[a-zA-Z0-9]{4,}" 
+                                       minlength="4" 
+                                       required
+                                       oninvalid="this.setCustomValidity('영문과 숫자만 사용하여 4자 이상 입력해주세요.')"
+                                       oninput="resetUsernameCheck(); this.setCustomValidity('')">
+                                <button type="button" class="btn btn-outline-secondary" id="checkUsernameBtn" onclick="checkUsername()">
+                                    중복확인
+                                </button>
+                            </div>
+                            <div class="form-text">영문, 숫자 조합으로 4자 이상 입력해주세요.</div>
+                            <div id="usernameCheckResult" class="mt-2"></div>
+                            <div class="invalid-feedback"></div>
+                            <input type="hidden" id="usernameChecked" value="false">
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">비밀번호</label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   minlength="8" 
+                                   required
+                                   oninvalid="this.setCustomValidity('비밀번호는 8자 이상이어야 합니다.')"
+                                   oninput="this.setCustomValidity('')">
+                            <div class="form-text">비밀번호는 8자 이상이어야 합니다.</div>
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password2" class="form-label">비밀번호 확인</label>
+                            <input type="password" class="form-control" id="password2" name="password2" 
+                                   required
+                                   oninvalid="this.setCustomValidity('비밀번호 확인을 입력해주세요.')"
+                                   oninput="checkPasswordMatch(); this.setCustomValidity('')">
+                            <div class="invalid-feedback"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">이메일</label>
+                            <input type="email" class="form-control" id="email" name="email">
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success">계정생성</button>
+                        </div>
+                    </form>
+                    <div class="mt-3 text-center">
+                        <a href="{{ url_for('auth.login') }}" class="text-decoration-none">이미 계정이 있으신가요? 로그인</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+let usernameCheckComplete = false;
+
+function resetUsernameCheck() {
+    usernameCheckComplete = false;
+    document.getElementById('usernameChecked').value = 'false';
+    document.getElementById('usernameCheckResult').innerHTML = '';
+    document.getElementById('usernameCheckResult').className = 'mt-2';
+}
+
+function checkUsername() {
+    const username = document.getElementById('username').value.trim();
+    const checkBtn = document.getElementById('checkUsernameBtn');
+    const resultDiv = document.getElementById('usernameCheckResult');
+    
+    if (!username) {
+        resultDiv.innerHTML = '<span class="text-danger">사용자ID를 입력해주세요.</span>';
+        resultDiv.className = 'mt-2 text-danger';
+        return;
+    }
+    
+    if (username.length < 4) {
+        resultDiv.innerHTML = '<span class="text-danger">사용자ID는 4자 이상이어야 합니다.</span>';
+        resultDiv.className = 'mt-2 text-danger';
+        return;
+    }
+    
+    if (!/^[a-zA-Z0-9]+$/.test(username)) {
+        resultDiv.innerHTML = '<span class="text-danger">사용자ID는 영문과 숫자만 사용할 수 있습니다.</span>';
+        resultDiv.className = 'mt-2 text-danger';
+        return;
+    }
+    
+    // 버튼 비활성화 및 로딩 표시
+    checkBtn.disabled = true;
+    checkBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> 확인중...';
+    resultDiv.innerHTML = '';
+    
+    // AJAX 요청
+    fetch('{{ url_for("auth.check_username") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = '중복확인';
+        
+        if (data.available) {
+            usernameCheckComplete = true;
+            document.getElementById('usernameChecked').value = 'true';
+            resultDiv.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> ' + data.message + '</span>';
+            resultDiv.className = 'mt-2 text-success';
+            document.getElementById('username').classList.remove('is-invalid');
+            document.getElementById('username').classList.add('is-valid');
+        } else {
+            usernameCheckComplete = false;
+            document.getElementById('usernameChecked').value = 'false';
+            resultDiv.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> ' + data.message + '</span>';
+            resultDiv.className = 'mt-2 text-danger';
+            document.getElementById('username').classList.remove('is-valid');
+            document.getElementById('username').classList.add('is-invalid');
+        }
+    })
+    .catch(error => {
+        checkBtn.disabled = false;
+        checkBtn.innerHTML = '중복확인';
+        resultDiv.innerHTML = '<span class="text-danger">오류가 발생했습니다. 다시 시도해주세요.</span>';
+        resultDiv.className = 'mt-2 text-danger';
+        console.error('Error:', error);
+    });
+}
+
+function validateBeforeSubmit(event) {
+    const usernameChecked = document.getElementById('usernameChecked').value === 'true';
+    const currentUsername = document.getElementById('username').value.trim();
+    
+    if (!usernameChecked) {
+        event.preventDefault();
+        alert('사용자ID 중복확인을 해주세요.');
+        document.getElementById('usernameCheckResult').innerHTML = '<span class="text-danger">사용자ID 중복확인이 필요합니다.</span>';
+        document.getElementById('usernameCheckResult').className = 'mt-2 text-danger';
+        return false;
+    }
+    
+    // 사용자ID가 변경되었는지 확인
+    if (usernameCheckComplete) {
+        // 중복 확인이 완료된 상태에서 제출
+        return true;
+    }
+    
+    return true;
+}
+
+function checkPasswordMatch() {
+    const password = document.getElementById('password').value;
+    const password2 = document.getElementById('password2').value;
+    const password2Input = document.getElementById('password2');
+    
+    if (password2 && password !== password2) {
+        password2Input.setCustomValidity('비밀번호가 일치하지 않습니다.');
+        password2Input.classList.add('is-invalid');
+    } else {
+        password2Input.setCustomValidity('');
+        password2Input.classList.remove('is-invalid');
+    }
+}
+
+// 사용자ID 입력 필드에서 Enter 키 입력 시 중복확인
+document.getElementById('username').addEventListener('keypress', function(event) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        checkUsername();
+    }
+});
+
+document.getElementById('password').addEventListener('input', checkPasswordMatch);
+</script>
+{% endblock %}
+

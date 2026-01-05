@@ -1,0 +1,9 @@
+.env
+.flaskenv
+inspect_mail_config.py
+pybo.db
+requirements.txt
+send_test_email.py
+
+migrations/
+__pycache__/

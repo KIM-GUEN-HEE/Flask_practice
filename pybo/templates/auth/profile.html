@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">사용자 프로필</h4>
+                </div>
+                <div class="card-body">
+                    <div class="profile-info mb-4">
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>사용자ID:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="text-muted">{{ user.username }}</p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>이메일:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="text-muted">
+                                    {% if user.email %}
+                                        {{ user.email }}
+                                    {% else %}
+                                        <span class="text-secondary">등록되지 않음</span>
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <strong>가입일:</strong>
+                            </div>
+                            <div class="col-md-9">
+                                <p class="text-muted">{{ user.create_date.strftime('%Y년 %m월 %d일 %H:%M') }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="profile-actions">
+                        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">
+                            홈으로 돌아가기
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
