@@ -1,11 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import func
 
-from flask import Blueprint, render_template, request, url_for, session, abort, jsonify
+from flask import Blueprint, render_template, request, url_for, session, abort, jsonify, g
 from werkzeug.utils import redirect
 from .. import db
 
-from pybo.models import Question, User, QuestionLike, QuestionBookmark, Answer, AnswerLike
+from pybo.models import Question, User, QuestionLike, QuestionBookmark, Answer, AnswerLike, QuestionView
 
 from pybo.forms import QuestionForm, AnswerForm
 from pybo.login_required import login_required
@@ -51,6 +51,12 @@ def _list():
         ).group_by(Question.id).order_by(
             func.count(QuestionBookmark.id).asc(), Question.create_date.desc()
         ).paginate(page=page, per_page=per_page)
+    elif sort == 'views_desc':
+        # Order by view count (descending)
+        question_list = Question.query.order_by(Question.view_count.desc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
+    elif sort == 'views_asc':
+        # Order by view count (ascending)
+        question_list = Question.query.order_by(Question.view_count.asc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
     elif sort == 'oldest':
         # Order by oldest (create_date ascending)
         question_list = Question.query.order_by(Question.create_date.asc()).paginate(page=page, per_page=per_page)
@@ -88,6 +94,25 @@ def _list():
 def detail(question_id):
     form = AnswerForm()
     question = Question.query.get_or_404(question_id)
+    
+    # 조회수 처리 - 1시간 내 동일 사용자 중복 조회 방지
+    if g.user:
+        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        recent_view = QuestionView.query.filter_by(
+            question_id=question_id,
+            user_id=g.user.id
+        ).filter(QuestionView.created_at > one_hour_ago).first()
+        
+        # 1시간 내 기록이 없으면 조회수 증가 및 기록 추가
+        if not recent_view:
+            question.view_count += 1
+            view_record = QuestionView(
+                question_id=question_id,
+                user_id=g.user.id,
+                created_at=datetime.utcnow()
+            )
+            db.session.add(view_record)
+            db.session.commit()
     
     # Get answer sort parameter
     answer_sort = request.args.get('answer_sort', 'recent', type=str)

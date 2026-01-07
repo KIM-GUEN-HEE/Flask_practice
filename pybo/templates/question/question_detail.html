@@ -9,6 +9,9 @@
             <div class="d-flex justify-content-between">
                 <div class="badge bg-light text-dark p-2">
                     {{ question.user.username }} - {{ question.create_date }}
+                    <span class="ms-3">
+                        <i class="bi bi-eye"></i> 조회수: {{ question.view_count }}
+                    </span>
                 </div>
                 <div>
                     <button class="btn btn-sm btn-outline-danger like-btn" data-question-id="{{ question.id }}" data-like-url="{{ url_for('question.like_question', question_id=0) }}" id="like-btn-{{ question.id }}">

@@ -45,6 +45,15 @@
                    class="btn btn-sm btn-outline-light {% if current_sort == 'bookmarks_asc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
             </th>
+            <th style="cursor: pointer;">
+                조회수
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_desc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'views_desc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_asc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'views_asc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
+            </th>
         </tr>
         </thead>
         <tbody>
@@ -68,6 +77,9 @@
                     <i class="{% if g.user and question.bookmark_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-star-fill{% else %}bi bi-star{% endif %}"></i>
                     <span class="bookmark-count">{{ question.bookmark_set|length }}</span>
                 </button>
+            </td>
+            <td>
+                <i class="bi bi-eye"></i> {{ question.view_count }}
             </td>
         </tr>
         {% endfor %}
