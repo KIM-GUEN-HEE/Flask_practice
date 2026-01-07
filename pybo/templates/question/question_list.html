@@ -1,10 +1,31 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container my-3">
+    <!-- 검색 폼 (가운데) -->
+    <div class="d-flex justify-content-center align-items-center mb-3">
+        <form method="get" class="d-flex gap-2">
+            <input type="hidden" name="sort" value="{{ current_sort or 'recent' }}">
+            <input type="hidden" name="per_page" value="{{ question_list.per_page }}">
+            <input type="text" name="keyword" class="form-control" placeholder="제목 또는 내용 검색..." value="{{ keyword or '' }}" style="width: 700px;">
+            <button type="submit" class="btn btn-primary">검색</button>
+            {% if keyword %}
+            <a href="{{ url_for('question._list') }}" class="btn btn-secondary">초기화</a>
+            {% endif %}
+        </form>
+    </div>
+    
+    <!-- 검색 결과 표시 -->
+    {% if keyword %}
+    <div class="alert alert-info mb-3">
+        '{{ keyword }}'에 대한 검색 결과 <strong>{{ question_list.total }}</strong>개
+    </div>
+    {% endif %}
+    
     <form method="get" class="mb-3 d-flex align-items-center">
         <label class="me-2">목록 수:</label>
         <input type="hidden" name="page" value="1">
         <input type="hidden" name="sort" value="{{ current_sort or 'recent' }}">
+        <input type="hidden" name="keyword" value="{{ keyword or '' }}">
         <select name="per_page" class="form-select w-auto" onchange="this.form.submit()">
             <option value="10" {% if question_list.per_page == 10 %}selected{% endif %}>10개</option>
             <option value="30" {% if question_list.per_page == 30 %}selected{% endif %}>30개</option>
@@ -20,37 +41,37 @@
             <th>작성자</th>
             <th style="cursor: pointer;">
                 작성일시
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='recent') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='recent', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'recent' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='oldest') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='oldest', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'oldest' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
             </th>
             <th style="cursor: pointer;">
                 좋아요
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_desc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_desc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'likes_desc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_asc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_asc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'likes_asc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
             </th>
             <th style="cursor: pointer;">
                 즐겨찾기
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_desc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_desc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'bookmarks_desc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_asc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_asc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'bookmarks_asc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
             </th>
             <th style="cursor: pointer;">
                 조회수
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_desc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_desc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'views_desc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
-                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_asc') }}" 
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='views_asc', keyword=keyword or '') }}" 
                    class="btn btn-sm btn-outline-light {% if current_sort == 'views_asc' %}active{% endif %}" 
                    style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
             </th>
@@ -95,10 +116,10 @@
         <ul class="pagination flex-wrap">
             {% if question_list.has_prev %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort=current_sort or 'recent') }}">First</a>
+                <a class="page-link" href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort=current_sort or 'recent', keyword=keyword or '') }}">First</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('question._list', page=question_list.prev_num, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Previous</a>
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.prev_num, per_page=question_list.per_page, sort=current_sort or 'recent', keyword=keyword or '') }}">Previous</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">First</span></li>
@@ -110,17 +131,17 @@
                 <li class="page-item disabled"><span class="page-link">...</span></li>
                 {% else %}
                 <li class="page-item {% if p == question_list.page %}active{% endif %}">
-                    <a class="page-link" href="{{ url_for('question._list', page=p, per_page=question_list.per_page, sort=current_sort or 'recent') }}">{{ p }}</a>
+                    <a class="page-link" href="{{ url_for('question._list', page=p, per_page=question_list.per_page, sort=current_sort or 'recent', keyword=keyword or '') }}">{{ p }}</a>
                 </li>
                 {% endif %}
             {% endfor %}
 
             {% if question_list.has_next %}
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('question._list', page=question_list.next_num, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Next</a>
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.next_num, per_page=question_list.per_page, sort=current_sort or 'recent', keyword=keyword or '') }}">Next</a>
             </li>
             <li class="page-item">
-                <a class="page-link" href="{{ url_for('question._list', page=question_list.pages, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Last</a>
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.pages, per_page=question_list.per_page, sort=current_sort or 'recent', keyword=keyword or '') }}">Last</a>
             </li>
             {% else %}
             <li class="page-item disabled"><span class="page-link">Next</span></li>

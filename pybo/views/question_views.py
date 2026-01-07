@@ -18,51 +18,72 @@ def _list():
     page = request.args.get('page', type=int, default=1)
     per_page = request.args.get('per_page', type=int, default=10)
     sort = request.args.get('sort', 'recent', type=str)
+    keyword = request.args.get('keyword', '', type=str).strip()
     
     if per_page not in (10, 30, 50, 100):
         per_page = 10
     
+    # Start with base query
+    base_query = Question.query
+    
+    # Apply search filter if keyword is provided
+    if keyword:
+        # 검색 키워드에서 공백 제거
+        keyword_no_space = keyword.replace(' ', '')
+        base_query = base_query.filter(
+            (func.replace(Question.subject, ' ', '').ilike(f'%{keyword_no_space}%')) | 
+            (func.replace(Question.content, ' ', '').ilike(f'%{keyword_no_space}%'))
+        )
+    
     # Determine sorting order
     if sort == 'likes_desc':
         # Order by number of likes (descending)
-        question_list = db.session.query(Question).outerjoin(
+        question_list = db.session.query(Question).filter(
+            base_query.whereclause if hasattr(base_query, 'whereclause') else True
+        ).outerjoin(
             QuestionLike, Question.id == QuestionLike.question_id
         ).group_by(Question.id).order_by(
             func.count(QuestionLike.id).desc(), Question.create_date.desc()
         ).paginate(page=page, per_page=per_page)
     elif sort == 'likes_asc':
         # Order by number of likes (ascending)
-        question_list = db.session.query(Question).outerjoin(
+        question_list = db.session.query(Question).filter(
+            base_query.whereclause if hasattr(base_query, 'whereclause') else True
+        ).outerjoin(
             QuestionLike, Question.id == QuestionLike.question_id
         ).group_by(Question.id).order_by(
             func.count(QuestionLike.id).asc(), Question.create_date.desc()
         ).paginate(page=page, per_page=per_page)
     elif sort == 'bookmarks_desc':
         # Order by number of bookmarks (descending)
-        question_list = db.session.query(Question).outerjoin(
+        question_list = db.session.query(Question).filter(
+            base_query.whereclause if hasattr(base_query, 'whereclause') else True
+        ).outerjoin(
             QuestionBookmark, Question.id == QuestionBookmark.question_id
         ).group_by(Question.id).order_by(
             func.count(QuestionBookmark.id).desc(), Question.create_date.desc()
         ).paginate(page=page, per_page=per_page)
     elif sort == 'bookmarks_asc':
         # Order by number of bookmarks (ascending)
-        question_list = db.session.query(Question).outerjoin(
+        question_list = db.session.query(Question).filter(
+            base_query.whereclause if hasattr(base_query, 'whereclause') else True
+        ).outerjoin(
             QuestionBookmark, Question.id == QuestionBookmark.question_id
         ).group_by(Question.id).order_by(
             func.count(QuestionBookmark.id).asc(), Question.create_date.desc()
         ).paginate(page=page, per_page=per_page)
     elif sort == 'views_desc':
         # Order by view count (descending)
-        question_list = Question.query.order_by(Question.view_count.desc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
+        question_list = base_query.order_by(Question.view_count.desc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
     elif sort == 'views_asc':
         # Order by view count (ascending)
-        question_list = Question.query.order_by(Question.view_count.asc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
+        question_list = base_query.order_by(Question.view_count.asc(), Question.create_date.desc()).paginate(page=page, per_page=per_page)
     elif sort == 'oldest':
         # Order by oldest (create_date ascending)
-        question_list = Question.query.order_by(Question.create_date.asc()).paginate(page=page, per_page=per_page)
+        question_list = base_query.order_by(Question.create_date.asc()).paginate(page=page, per_page=per_page)
     else:
         # Default: Order by recent (create_date descending)
-        question_list = Question.query.order_by(Question.create_date.desc()).paginate(page=page, per_page=per_page)
+        question_list = base_query.order_by(Question.create_date.desc()).paginate(page=page, per_page=per_page)
     
     # Calculate pagination range
     pages_to_show = []
@@ -86,7 +107,7 @@ def _list():
                 pages_to_show.append('...')
             pages_to_show.append(question_list.pages)
     
-    return render_template('question/question_list.html', question_list=question_list, current_sort=sort, pages_to_show=pages_to_show)
+    return render_template('question/question_list.html', question_list=question_list, current_sort=sort, pages_to_show=pages_to_show, keyword=keyword)
 
 
 @bp.route('/detail/<int:question_id>/')
