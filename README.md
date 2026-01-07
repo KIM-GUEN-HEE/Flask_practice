@@ -1,4 +1,38 @@
-# Flask Framework Web Board Service
+Flask Framework Web Board Service
+================================
+
+Overview
+---------------
+
+Requirement
+-----------
+- Python 3.8
+- flask & library
+```
+pip install flask flask-sqlalchemy flask-migrate authlib
+```
+
+- DB init
+```
+flask db upgrade
+```
+
+- Google OAuth
+```
+set GOOGLE_CLIENT_ID=your_Google_Client_Id
+set GOOGLE_CLIENT_SECRET=your_Google_Client_Secret
+```
+
+- Email Authentication
+```
+set MAIL_SERVER=smtp.your_email_domain
+set MAIL_PORT=587
+set MAIL_USERNAME=your_email
+set MAIL_PASSWORD=your_app_password
+set MAIL_USE_TLS=True
+set MAIL_DEFAULT_SENDER=your_email
+```
+
 
 ## Start Page(Login Page)
 <img width="1919" height="662" alt="image" src="https://github.com/user-attachments/assets/2e8e4c9b-b406-42c0-ba0c-4ef1773295a1" />
