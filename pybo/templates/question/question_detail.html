@@ -10,19 +10,40 @@
                 <div class="badge bg-light text-dark p-2">
                     {{ question.user.username }} - {{ question.create_date }}
                 </div>
-                {% if g.user and g.user.id == question.user_id %}
                 <div>
+                    <button class="btn btn-sm btn-outline-danger like-btn" data-question-id="{{ question.id }}" data-like-url="{{ url_for('question.like_question', question_id=0) }}" id="like-btn-{{ question.id }}">
+                        <i class="{% if g.user and question.like_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-heart-fill{% else %}bi bi-heart{% endif %}"></i>
+                        <span class="like-count">{{ question.like_set|length }}</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning bookmark-btn" data-question-id="{{ question.id }}" data-bookmark-url="{{ url_for('question.bookmark_question', question_id=0) }}" id="bookmark-btn-{{ question.id }}">
+                        <i class="{% if g.user and question.bookmark_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-star-fill{% else %}bi bi-star{% endif %}"></i>
+                        <span class="bookmark-count">{{ question.bookmark_set|length }}</span>
+                    </button>
+                    {% if g.user and g.user.id == question.user_id %}
                     <a href="{{ url_for('question.modify', question_id=question.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
                     <form action="{{ url_for('question.delete', question_id=question.id) }}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
                     </form>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
     <!-- 답변 목록 -->
-    <h5 class="border-bottom my-3 py-2">{{ question.answer_set|length }}개의 답변이 있습니다.</h5>
+    <h5 class="border-bottom my-3 py-2">
+        {{ question.answer_set|length }}개의 답변이 있습니다.
+        <div class="btn-group btn-group-sm" role="group" style="float: right;">
+            <a href="{{ url_for('question.detail', question_id=question.id, answer_sort='recent') }}" 
+               class="btn btn-outline-secondary {% if answer_sort == 'recent' %}active{% endif %}" 
+               style="font-size: 0.85rem;">최신순</a>
+            <a href="{{ url_for('question.detail', question_id=question.id, answer_sort='likes_desc') }}" 
+               class="btn btn-outline-secondary {% if answer_sort == 'likes_desc' %}active{% endif %}" 
+               style="font-size: 0.85rem;">좋아요 많은순</a>
+            <a href="{{ url_for('question.detail', question_id=question.id, answer_sort='likes_asc') }}" 
+               class="btn btn-outline-secondary {% if answer_sort == 'likes_asc' %}active{% endif %}" 
+               style="font-size: 0.85rem;">좋아요 적은순</a>
+        </div>
+    </h5>
     {% for answer in question.answer_set %}
     <div class="card my-3">
         <div class="card-body">
@@ -31,14 +52,22 @@
                 <div class="badge bg-light text-dark p-2">
                     {{ answer.user.username }} - {{ answer.create_date }}
                 </div>
-                {% if g.user and g.user.id == answer.user_id %}
                 <div>
+                    <button class="btn btn-sm btn-outline-danger answer-like-btn" data-answer-id="{{ answer.id }}" data-like-url="{{ url_for('answer.like_answer', answer_id=0) }}" id="answer-like-btn-{{ answer.id }}">
+                        <i class="{% if g.user and answer.like_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-heart-fill{% else %}bi bi-heart{% endif %}"></i>
+                        <span class="answer-like-count">{{ answer.like_set|length }}</span>
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning answer-bookmark-btn" data-answer-id="{{ answer.id }}" data-bookmark-url="{{ url_for('answer.bookmark_answer', answer_id=0) }}" id="answer-bookmark-btn-{{ answer.id }}">
+                        <i class="{% if g.user and answer.bookmark_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-bookmark-fill{% else %}bi bi-bookmark{% endif %}"></i>
+                        <span class="answer-bookmark-count">{{ answer.bookmark_set|length }}</span>
+                    </button>
+                    {% if g.user and g.user.id == answer.user_id %}
                     <a href="{{ url_for('answer.modify', answer_id=answer.id) }}" class="btn btn-sm btn-outline-secondary">수정</a>
                     <form action="{{ url_for('answer.delete', answer_id=answer.id) }}" method="post" style="display:inline;">
                         <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</button>
                     </form>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>
@@ -66,4 +95,126 @@
         <input type="submit" value="답변등록" class="btn btn-primary">
     </form>
 </div>
+
+<script>
+// 질문 좋아요
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const questionId = this.dataset.questionId;
+        const likeUrl = this.dataset.likeUrl.replace('0', questionId);
+        fetch(likeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const likeBtn = document.querySelector(`#like-btn-${questionId}`);
+                const likeIcon = likeBtn.querySelector('i');
+                const likeCount = likeBtn.querySelector('.like-count');
+                
+                if (data.is_liked) {
+                    likeIcon.className = 'bi bi-heart-fill';
+                } else {
+                    likeIcon.className = 'bi bi-heart';
+                }
+                likeCount.textContent = data.like_count;
+            }
+        });
+    });
+});
+
+// 질문 즐겨찾기
+document.querySelectorAll('.bookmark-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const questionId = this.dataset.questionId;
+        const bookmarkUrl = this.dataset.bookmarkUrl.replace('0', questionId);
+        fetch(bookmarkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const bookmarkBtn = document.querySelector(`#bookmark-btn-${questionId}`);
+                const bookmarkIcon = bookmarkBtn.querySelector('i');
+                const bookmarkCount = bookmarkBtn.querySelector('.bookmark-count');
+                
+                if (data.is_bookmarked) {
+                    bookmarkIcon.className = 'bi bi-star-fill';
+                } else {
+                    bookmarkIcon.className = 'bi bi-star';
+                }
+                bookmarkCount.textContent = data.bookmark_count;
+            }
+        });
+    });
+});
+
+// 답변 좋아요
+document.querySelectorAll('.answer-like-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const answerId = this.dataset.answerId;
+        const likeUrl = this.dataset.likeUrl.replace('0', answerId);
+        fetch(likeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const answerLikeBtn = document.querySelector(`#answer-like-btn-${answerId}`);
+                const answerLikeIcon = answerLikeBtn.querySelector('i');
+                const answerLikeCount = answerLikeBtn.querySelector('.answer-like-count');
+                
+                if (data.is_liked) {
+                    answerLikeIcon.className = 'bi bi-heart-fill';
+                } else {
+                    answerLikeIcon.className = 'bi bi-heart';
+                }
+                answerLikeCount.textContent = data.like_count;
+            }
+        });
+    });
+});
+
+// 답변 즐겨찾기
+document.querySelectorAll('.answer-bookmark-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const answerId = this.dataset.answerId;
+        const bookmarkUrl = this.dataset.bookmarkUrl.replace('0', answerId);
+        fetch(bookmarkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const answerBookmarkBtn = document.querySelector(`#answer-bookmark-btn-${answerId}`);
+                const answerBookmarkIcon = answerBookmarkBtn.querySelector('i');
+                const answerBookmarkCount = answerBookmarkBtn.querySelector('.answer-bookmark-count');
+
+                if (data.is_bookmarked) {
+                    answerBookmarkIcon.className = 'bi bi-bookmark-fill';
+                } else {
+                    answerBookmarkIcon.className = 'bi bi-bookmark';
+                }
+                answerBookmarkCount.textContent = data.bookmark_count;
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

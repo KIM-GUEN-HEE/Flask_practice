@@ -44,4 +44,48 @@ class UnverifiedUser(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     token = db.Column(db.String(300), unique=True, nullable=False)
     create_date = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+
+
+class QuestionLike(db.Model):
+    __tablename__ = 'question_like'
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    create_date = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+    question = db.relationship('Question', backref=db.backref('like_set'))
+    user = db.relationship('User', backref=db.backref('question_like_set'))
+    __table_args__ = (db.UniqueConstraint('question_id', 'user_id', name='question_like_unique'),)
+
+
+class QuestionBookmark(db.Model):
+    __tablename__ = 'question_bookmark'
+    id = db.Column(db.Integer, primary_key=True)
+    question_id = db.Column(db.Integer, db.ForeignKey('question.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    create_date = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+    question = db.relationship('Question', backref=db.backref('bookmark_set'))
+    user = db.relationship('User', backref=db.backref('question_bookmark_set'))
+    __table_args__ = (db.UniqueConstraint('question_id', 'user_id', name='question_bookmark_unique'),)
+
+
+class AnswerLike(db.Model):
+    __tablename__ = 'answer_like'
+    id = db.Column(db.Integer, primary_key=True)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    create_date = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+    answer = db.relationship('Answer', backref=db.backref('like_set'))
+    user = db.relationship('User', backref=db.backref('answer_like_set'))
+    __table_args__ = (db.UniqueConstraint('answer_id', 'user_id', name='answer_like_unique'),)
+
+
+class AnswerBookmark(db.Model):
+    __tablename__ = 'answer_bookmark'
+    id = db.Column(db.Integer, primary_key=True)
+    answer_id = db.Column(db.Integer, db.ForeignKey('answer.id', ondelete='CASCADE'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='CASCADE'), nullable=False)
+    create_date = db.Column(db.DateTime(), nullable=False, default=datetime.utcnow)
+    answer = db.relationship('Answer', backref=db.backref('bookmark_set'))
+    user = db.relationship('User', backref=db.backref('answer_bookmark_set'))
+    __table_args__ = (db.UniqueConstraint('answer_id', 'user_id', name='answer_bookmark_unique'),)
     

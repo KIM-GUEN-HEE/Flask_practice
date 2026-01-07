@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from flask import Blueprint, url_for, request, render_template, session, abort
+from flask import Blueprint, url_for, request, render_template, session, abort, jsonify
 from werkzeug.utils import redirect
 
 from pybo import db
 from ..forms import AnswerForm
-from pybo.models import Question, Answer, User
+from pybo.models import Question, Answer, User, AnswerLike, AnswerBookmark
 from pybo.login_required import login_required
 
 bp = Blueprint('answer',__name__, url_prefix='/answer')
@@ -59,3 +59,58 @@ def delete(answer_id):
     db.session.delete(answer)
     db.session.commit()
     return redirect(url_for('question.detail', question_id=question_id))
+
+
+@bp.route('/like/<int:answer_id>/', methods=('POST',))
+@login_required
+def like_answer(answer_id):
+    answer = Answer.query.get_or_404(answer_id)
+    user = User.query.filter_by(username=session.get('username')).first()
+    
+    # 이미 좋아요를 눌렀으면 취소
+    existing_like = AnswerLike.query.filter_by(
+        answer_id=answer_id, user_id=user.id
+    ).first()
+    
+    if existing_like:
+        db.session.delete(existing_like)
+    else:
+        like = AnswerLike(answer_id=answer_id, user_id=user.id, create_date=datetime.now())
+        db.session.add(like)
+    
+    db.session.commit()
+    
+    like_count = AnswerLike.query.filter_by(answer_id=answer_id).count()
+    is_liked = AnswerLike.query.filter_by(
+        answer_id=answer_id, user_id=user.id
+    ).first() is not None
+    
+    return jsonify({
+        'success': True,
+        'like_count': like_count,
+        'is_liked': is_liked
+    })
+
+
+@bp.route('/bookmark/<int:answer_id>/', methods=('POST',))
+@login_required
+def bookmark_answer(answer_id):
+    answer = Answer.query.get_or_404(answer_id)
+    user = User.query.filter_by(username=session.get('username')).first()
+
+    existing = AnswerBookmark.query.filter_by(answer_id=answer_id, user_id=user.id).first()
+    if existing:
+        db.session.delete(existing)
+    else:
+        bm = AnswerBookmark(answer_id=answer_id, user_id=user.id, create_date=datetime.now())
+        db.session.add(bm)
+    db.session.commit()
+
+    bookmark_count = AnswerBookmark.query.filter_by(answer_id=answer_id).count()
+    is_bookmarked = AnswerBookmark.query.filter_by(answer_id=answer_id, user_id=user.id).first() is not None
+
+    return jsonify({
+        'success': True,
+        'bookmark_count': bookmark_count,
+        'is_bookmarked': is_bookmarked
+    })

@@ -1,34 +1,110 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container my-3">
+    <form method="get" class="mb-3 d-flex align-items-center">
+        <label class="me-2">목록 수:</label>
+        <input type="hidden" name="page" value="1">
+        <input type="hidden" name="sort" value="{{ current_sort or 'recent' }}">
+        <select name="per_page" class="form-select w-auto" onchange="this.form.submit()">
+            <option value="10" {% if question_list.per_page == 10 %}selected{% endif %}>10개</option>
+            <option value="30" {% if question_list.per_page == 30 %}selected{% endif %}>30개</option>
+            <option value="50" {% if question_list.per_page == 50 %}selected{% endif %}>50개</option>
+            <option value="100" {% if question_list.per_page == 100 %}selected{% endif %}>100개</option>
+        </select>
+    </form>
     <table class="table">
         <thead>
         <tr class="table-dark">
             <th>번호</th>
             <th>제목</th>
             <th>작성자</th>
-            <th>작성일시</th>
+            <th style="cursor: pointer;">
+                작성일시
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='recent') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'recent' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='oldest') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'oldest' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
+            </th>
+            <th style="cursor: pointer;">
+                좋아요
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_desc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'likes_desc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='likes_asc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'likes_asc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
+            </th>
+            <th style="cursor: pointer;">
+                즐겨찾기
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_desc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'bookmarks_desc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▼</a>
+                <a href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort='bookmarks_asc') }}" 
+                   class="btn btn-sm btn-outline-light {% if current_sort == 'bookmarks_asc' %}active{% endif %}" 
+                   style="padding: 2px 6px; font-size: 0.75rem;">▲</a>
+            </th>
         </tr>
         </thead>
         <tbody>
         {% if question_list %}
-        {% for question in question_list %}
+        {% for question in question_list.items %}
         <tr>
-            <td>{{ loop.index }}</td>
+            <td>{{ (question_list.page-1)*question_list.per_page + loop.index }}</td>
             <td>
                 <a href="{{ url_for('question.detail', question_id=question.id) }}">{{ question.subject }}</a>
             </td>
             <td>{{ question.user.username }}</td>
             <td>{{ question.create_date }}</td>
+            <td>{{ question.like_set|length }}</td>
+            <td>{{ question.bookmark_set|length }}</td>
         </tr>
         {% endfor %}
         {% else %}
         <tr>
-            <td colspan="4">질문이 없습니다.</td>
+            <td colspan="6">질문이 없습니다.</td>
         </tr>
         {% endif %}
         </tbody>
     </table>
     <a href="{{ url_for('question.create') }}" class="btn btn-primary">질문 등록하기</a>
+    <nav aria-label="Page navigation" class="mt-3">
+        <ul class="pagination flex-wrap">
+            {% if question_list.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('question._list', page=1, per_page=question_list.per_page, sort=current_sort or 'recent') }}">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.prev_num, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">First</span></li>
+            <li class="page-item disabled"><span class="page-link">Previous</span></li>
+            {% endif %}
+
+            {% for p in pages_to_show %}
+                {% if p == '...' %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+                {% else %}
+                <li class="page-item {% if p == question_list.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('question._list', page=p, per_page=question_list.per_page, sort=current_sort or 'recent') }}">{{ p }}</a>
+                </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if question_list.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.next_num, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('question._list', page=question_list.pages, per_page=question_list.per_page, sort=current_sort or 'recent') }}">Last</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next</span></li>
+            <li class="page-item disabled"><span class="page-link">Last</span></li>
+            {% endif %}
+        </ul>
+    </nav>
 </div>
 {% endblock %}

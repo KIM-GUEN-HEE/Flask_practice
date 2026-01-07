@@ -1,0 +1,47 @@
+/* Like button styling */
+.like-btn i, .answer-like-btn i {
+    color: #dc3545;
+}
+
+.like-btn:hover i, .answer-like-btn:hover i {
+    color: #dc3545;
+}
+
+.like-btn.active i, .answer-like-btn.active i {
+    color: #dc3545;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger.active {
+    color: #fff;
+    background-color: #dc3545;
+    border-color: #dc3545;
+}
+
+.bi-heart-fill {
+    color: #dc3545;
+}
+
+.bi-heart {
+    color: #dc3545;
+}
+/* Pagination styling */
+.pagination.flex-wrap {
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+}
+
+.pagination.flex-wrap .page-item {
+    margin-right: 0;
+}

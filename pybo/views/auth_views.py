@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError
 import requests
 
 from pybo import db, oauth
-from pybo.models import User, UnverifiedUser
+from pybo.models import User, UnverifiedUser, Question, Answer, QuestionLike, AnswerLike, QuestionBookmark, AnswerBookmark
 import secrets
 from pybo.login_required import login_required
 from pybo.email_utils import send_verification_email
@@ -169,6 +169,53 @@ def profile():
     return render_template('auth/profile.html', user=user)
 
 
+@bp.route('/liked/')
+@login_required
+def liked_items():
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('auth.login'))
+
+    liked_questions = Question.query.join(QuestionLike, Question.id == QuestionLike.question_id)\
+        .filter(QuestionLike.user_id == user.id)\
+        .order_by(QuestionLike.create_date.desc()).all()
+
+    liked_answers = Answer.query.join(AnswerLike, Answer.id == AnswerLike.answer_id)\
+        .filter(AnswerLike.user_id == user.id)\
+        .order_by(AnswerLike.create_date.desc()).all()
+
+    bookmarked_questions = Question.query.join(QuestionBookmark, Question.id == QuestionBookmark.question_id)\
+        .filter(QuestionBookmark.user_id == user.id)\
+        .order_by(QuestionBookmark.create_date.desc()).all()
+
+    bookmarked_answers = Answer.query.join(AnswerBookmark, Answer.id == AnswerBookmark.answer_id)\
+        .filter(AnswerBookmark.user_id == user.id)\
+        .order_by(AnswerBookmark.create_date.desc()).all()
+
+    return render_template('auth/liked.html', user=user, liked_questions=liked_questions, liked_answers=liked_answers,
+                           bookmarked_questions=bookmarked_questions, bookmarked_answers=bookmarked_answers)
+
+
+@bp.route('/bookmarks/')
+@login_required
+def bookmarked_items():
+    user = User.query.get(session.get('user_id'))
+    if not user:
+        flash('사용자를 찾을 수 없습니다.')
+        return redirect(url_for('auth.login'))
+
+    bookmarked_questions = Question.query.join(QuestionBookmark, Question.id == QuestionBookmark.question_id)\
+        .filter(QuestionBookmark.user_id == user.id)\
+        .order_by(QuestionBookmark.create_date.desc()).all()
+
+    bookmarked_answers = Answer.query.join(AnswerBookmark, Answer.id == AnswerBookmark.answer_id)\
+        .filter(AnswerBookmark.user_id == user.id)\
+        .order_by(AnswerBookmark.create_date.desc()).all()
+
+    return render_template('auth/bookmarks.html', user=user, bookmarked_questions=bookmarked_questions, bookmarked_answers=bookmarked_answers)
+
+
 @bp.route('/check_username/', methods=['POST'])
 def check_username():
     """사용자ID 중복 확인 API"""
@@ -247,17 +294,29 @@ def signup():
         if error is None:
             try:
                 if email:
-                    # create pending unverified entry
+                    # create or update pending unverified entry
                     token = secrets.token_urlsafe(48)
-                    pending = UnverifiedUser(
-                        username=username,
-                        password=generate_password_hash(password),
-                        email=email,
-                        token=token,
-                        create_date=datetime.utcnow()
-                    )
-                    db.session.add(pending)
-                    db.session.commit()
+                    # If there's already a pending entry for this email, update it instead
+                    existing_pending = UnverifiedUser.query.filter(
+                        db.func.lower(UnverifiedUser.email) == db.func.lower(email)
+                    ).first()
+                    if existing_pending:
+                        existing_pending.username = username
+                        existing_pending.password = generate_password_hash(password)
+                        existing_pending.token = token
+                        existing_pending.create_date = datetime.utcnow()
+                        db.session.commit()
+                        pending = existing_pending
+                    else:
+                        pending = UnverifiedUser(
+                            username=username,
+                            password=generate_password_hash(password),
+                            email=email,
+                            token=token,
+                            create_date=datetime.utcnow()
+                        )
+                        db.session.add(pending)
+                        db.session.commit()
 
                     verify_url = url_for('auth.verify', token=token, _external=True)
                     sent = send_verification_email(email, verify_url)
