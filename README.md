@@ -34,7 +34,7 @@ set MAIL_USE_TLS=True
 set MAIL_DEFAULT_SENDER=your_email
 ```
 
-Functions
+Features
 ---------
 - CRUD(Create, Read, Update, Delete)
 - Search
