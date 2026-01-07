@@ -7,10 +7,12 @@
 <img width="1919" height="744" alt="image" src="https://github.com/user-attachments/assets/d50cd221-0033-4d16-a609-b45e3fcca3c1" />
 
 ## Main Page
-<img width="1914" height="854" alt="image" src="https://github.com/user-attachments/assets/3ce7f544-96a3-466d-a856-540f6655f69a" />
+<img width="1919" height="808" alt="image" src="https://github.com/user-attachments/assets/33e8eb06-58c5-4bdc-86db-d9d5f3503bc4" />
+
 
 ## Question & Answer Page
-<img width="1919" height="857" alt="image" src="https://github.com/user-attachments/assets/5fb37dbf-bf68-41eb-bfad-9dbf4d0ad3aa" />
+<img width="1919" height="817" alt="image" src="https://github.com/user-attachments/assets/ce3d8ab8-8636-4370-8fdf-7192baff729c" />
+
 
 ## User Profile Page
 <img width="1919" height="492" alt="image" src="https://github.com/user-attachments/assets/0587f4ee-4896-493b-8628-71d9abf6f131" />
