@@ -36,6 +36,7 @@ set MAIL_DEFAULT_SENDER=your_email
 
 Functions
 ---------
+- CRUD(Create, Read, Update, Delete)
 - Question
 - Answer
 - Search
