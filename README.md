@@ -7,7 +7,8 @@
 <img width="1919" height="744" alt="image" src="https://github.com/user-attachments/assets/d50cd221-0033-4d16-a609-b45e3fcca3c1" />
 
 ## Main Page
-<img width="1919" height="808" alt="image" src="https://github.com/user-attachments/assets/33e8eb06-58c5-4bdc-86db-d9d5f3503bc4" />
+<img width="1919" height="845" alt="image" src="https://github.com/user-attachments/assets/3da671c0-376f-465a-89e7-d12daf6cb2f5" />
+
 
 
 ## Question & Answer Page
