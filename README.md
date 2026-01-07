@@ -2,7 +2,8 @@ Flask Framework Web Board Service
 ================================
 
 Overview
----------------
+--------
+Flask Web Board Service
 
 Requirement
 -----------
@@ -32,6 +33,15 @@ set MAIL_PASSWORD=your_app_password
 set MAIL_USE_TLS=True
 set MAIL_DEFAULT_SENDER=your_email
 ```
+
+Functions
+---------
+- Question
+- Answer
+- Search
+- Liked
+- BookMark
+- Views
 
 
 ## Start Page(Login Page)
