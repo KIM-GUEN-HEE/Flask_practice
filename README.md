@@ -1,1 +1,1 @@
-<h3>Flask Framework Web Service</h3>
+Flask Framework Web Service
