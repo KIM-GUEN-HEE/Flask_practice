@@ -57,8 +57,18 @@
             </td>
             <td>{{ question.user.username }}</td>
             <td>{{ question.create_date }}</td>
-            <td>{{ question.like_set|length }}</td>
-            <td>{{ question.bookmark_set|length }}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-danger like-btn" data-question-id="{{ question.id }}" data-like-url="{{ url_for('question.like_question', question_id=0) }}" id="like-btn-{{ question.id }}">
+                    <i class="{% if g.user and question.like_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-heart-fill{% else %}bi bi-heart{% endif %}"></i>
+                    <span class="like-count">{{ question.like_set|length }}</span>
+                </button>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-outline-warning bookmark-btn" data-question-id="{{ question.id }}" data-bookmark-url="{{ url_for('question.bookmark_question', question_id=0) }}" id="bookmark-btn-{{ question.id }}">
+                    <i class="{% if g.user and question.bookmark_set|selectattr('user_id', 'equalto', g.user.id)|list %}bi bi-star-fill{% else %}bi bi-star{% endif %}"></i>
+                    <span class="bookmark-count">{{ question.bookmark_set|length }}</span>
+                </button>
+            </td>
         </tr>
         {% endfor %}
         {% else %}
@@ -107,4 +117,65 @@
         </ul>
     </nav>
 </div>
+<script>
+// 질문 좋아요 (목록)
+document.querySelectorAll('.like-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const questionId = this.dataset.questionId;
+        const likeUrl = this.dataset.likeUrl.replace('0', questionId);
+        fetch(likeUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const likeBtn = document.querySelector(`#like-btn-${questionId}`);
+                const likeIcon = likeBtn.querySelector('i');
+                const likeCount = likeBtn.querySelector('.like-count');
+                
+                if (data.is_liked) {
+                    likeIcon.className = 'bi bi-heart-fill';
+                } else {
+                    likeIcon.className = 'bi bi-heart';
+                }
+                likeCount.textContent = data.like_count;
+            }
+        });
+    });
+});
+
+// 질문 즐겨찾기 (목록)
+document.querySelectorAll('.bookmark-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const questionId = this.dataset.questionId;
+        const bookmarkUrl = this.dataset.bookmarkUrl.replace('0', questionId);
+        fetch(bookmarkUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const bookmarkBtn = document.querySelector(`#bookmark-btn-${questionId}`);
+                const bookmarkIcon = bookmarkBtn.querySelector('i');
+                const bookmarkCount = bookmarkBtn.querySelector('.bookmark-count');
+                
+                if (data.is_bookmarked) {
+                    bookmarkIcon.className = 'bi bi-star-fill';
+                } else {
+                    bookmarkIcon.className = 'bi bi-star';
+                }
+                bookmarkCount.textContent = data.bookmark_count;
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
