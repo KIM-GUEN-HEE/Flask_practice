@@ -10,11 +10,12 @@ Requirement
 - Python 3.8
 - flask & library
 ```
-pip install flask flask-sqlalchemy flask-migrate authlib
+pip install flask flask-sqlalchemy flask-migrate authlib requests flask-wtf
 ```
 
 - DB init
 ```
+flask db init
 flask db upgrade
 ```
 
